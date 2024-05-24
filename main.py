@@ -5,8 +5,11 @@ p = pygame
 p.display.set_caption("Sad-Tap")
 screen = p.display.set_mode((800, 800))
 
+clock = pygame.time.Clock()
+FPS = 60
 
-g = Game(screen)
+
+g = Game(screen, FPS)
 running = True
 while running:
 
@@ -23,6 +26,6 @@ while running:
                     if apple.state == 'sad':
                         apple.make_happy()
                     else:
-                        # add time on timer
-                        pass
+                        g.timer -= g.TIME_PUNITION
+    clock.tick(FPS)
 

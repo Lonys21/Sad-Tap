@@ -2,17 +2,29 @@ import pygame, random
 p = pygame
 
 class Game:
-    def __init__(self, screen):
+    def __init__(self, screen, fps):
         self.screen = screen
+        self.fps = fps
         self.background = 'black'
+        self.actual_screen = 'game'
         self.MARGIN_Y = 100
+
+        # timer
+        self.TIMER_MAX = 120*self.fps
+        self.TIME_PUNITION = 25*self.fps
+        self.timer = self.TIMER_MAX
+        self.rect_height = 150
+        self.rect_x = 0
+        self.rect_y = 25
+
 
         # apples
         self.MAX_ROUND = 6
+        self.ADD_SAD = 2
         self.apple_size = 100
-        self.apples = []#p.sprite.Group()
-        self.apple_width = 6
-        self.apple_height = 6
+        self.apples = []
+        self.apple_width = 2
+        self.apple_height = 2
         self.num_apples = self.apple_height*self.apple_width
         self.orientations = [0, 90, 180, 270]
         self.number_sad = 1
@@ -47,11 +59,12 @@ class Game:
                     coos.append((x_, y_))
             return coos
     def restart(self):
+        self.timer = self.TIMER_MAX
         self.apples = []
         self.new_happy = 0
         self.round += 1
         self.coos = []
-        if self.round % 1 == 0:
+        if self.round % self.ADD_SAD == 0:
             self.number_sad += 1
             if self.number_sad > 3:
                 if self.num_apples <= 5*5:
@@ -80,10 +93,33 @@ class Game:
 
     def update(self):
         self.screen.fill(self.background)
-        for apple in self.apples:
-            self.screen.blit(apple.img, (apple.rect.x, apple.rect.y))
-        if self.new_happy == self.number_sad:
-            self.restart()
+        if self.actual_screen == 'game':
+            for apple in self.apples:
+                self.screen.blit(apple.img, (apple.rect.x, apple.rect.y))
+            if self.new_happy == self.number_sad:
+                self.restart()
+            rect_width = (self.timer/self.TIMER_MAX)*self.screen.get_width()
+            rect = pygame.draw.rect(self.screen, self.rect_color(rect_width), (self.rect_x, self.rect_y, rect_width, self.rect_height))
+            self.timer -= 1
+            if self.timer <= 0:
+                self.actual_screen = "loose_screen"
+        elif self.actual_screen == 'loose_screen':
+            pass
+
+    def rect_color(self, width):
+        if width > self.screen.get_width()*2/3:
+            R = self.screen.get_width() -width
+        else:
+            R = 255
+        G = 255 * (width / self.screen.get_width())
+        B = 0
+        if R > 255:
+            R = 255
+        if R < 0:
+            R = 0
+        if G < 0:
+            G = 0
+        return(R,G,B)
 
 class Apple(p.sprite.Sprite):
     def __init__(self, game, state, x, y):
