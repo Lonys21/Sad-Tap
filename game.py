@@ -23,12 +23,13 @@ class Game:
         self.ADD_SAD = 3
         self.apple_size = 100
         self.apples = []
-        self.apple_width = 2
-        self.apple_height = 2
+        self.apple_width = 8
+        self.apple_height = 6
         self.num_apples = self.apple_height*self.apple_width
         self.orientations = [0, 90, 180, 270]
         self.number_sad = 1
         self.new_happy = 0
+        self.colors_apples = ["red", "yellow", "orange", "lightgreen", "green"]
         self.start()
 
         # score
@@ -86,7 +87,8 @@ class Game:
     def start(self):
         self.coos = self.set_coos(self.apple_width, self.apple_height)
         for coo in self.coos:
-            self.apples.append(Apple(self, "happy", coo[0], coo[1]))
+            color = random.choice(self.colors_apples)
+            self.apples.append(Apple(self, "happy", color, coo[0], coo[1]))
         for n in range(self.number_sad):
             apple = random.choice(self.apples)
             while apple.state == 'sad':
@@ -127,13 +129,13 @@ class Game:
         return(R,G,B)
 
 class Apple(p.sprite.Sprite):
-    def __init__(self, game, state, x, y):
+    def __init__(self, game, state, color, x, y):
         super().__init__()
         self.g = game
         self.orientation = random.choice(self.g.orientations)
-        self.img_happy = p.transform.scale(p.image.load("assets/Apple_happy.png"), (self.g.apple_size, self.g.apple_size))
+        self.img_happy = p.transform.scale(p.image.load("assets/Apple_happy_" + color + ".png"), (self.g.apple_size, self.g.apple_size))
         self.img_happy = p.transform.rotate(self.img_happy, self.orientation)
-        self.img_sad = p.transform.scale(p.image.load("assets/Apple_sad.png"), (self.g.apple_size, self.g.apple_size))
+        self.img_sad = p.transform.scale(p.image.load("assets/Apple_sad_" + color + ".png"), (self.g.apple_size, self.g.apple_size))
         self.img_sad = p.transform.rotate(self.img_sad, self.orientation)
         self.state = state
         if state == 'happy':
