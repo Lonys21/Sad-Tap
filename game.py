@@ -13,14 +13,14 @@ class Game:
         self.TIMER_MAX = 120*self.fps
         self.TIME_PUNITION = 25*self.fps
         self.timer = self.TIMER_MAX
-        self.rect_height = 150
+        self.rect_height = 110
         self.rect_x = 0
-        self.rect_y = 25
+        self.rect_y = 65
 
 
         # apples
         self.MAX_ROUND = 6
-        self.ADD_SAD = 2
+        self.ADD_SAD = 3
         self.apple_size = 100
         self.apples = []
         self.apple_width = 2
@@ -29,8 +29,14 @@ class Game:
         self.orientations = [0, 90, 180, 270]
         self.number_sad = 1
         self.new_happy = 0
-        self.round = 1
         self.start()
+
+        # score
+        self.point = 0
+        self.score_text = pygame.font.SysFont("Arial",  65)
+        self.score_text_color = "white"
+        self.score_text_x = 0
+        self.score_text_y = 0
 
     def set_coos(self, number_width, number_height):
         x = []
@@ -62,19 +68,17 @@ class Game:
         self.timer = self.TIMER_MAX
         self.apples = []
         self.new_happy = 0
-        self.round += 1
+        self.point += 1
         self.coos = []
-        if self.round % self.ADD_SAD == 0:
+        if self.point % self.ADD_SAD == 0:
             self.number_sad += 1
             if self.number_sad > 3:
                 if self.num_apples <= 5*5:
                     self.number_sad = 1
                     self.apple_width += 2
                     self.apple_height += 2
-                    self.round = 1
                 elif self.num_apples == 6*6:
                     self.number_sad = 1
-                    self.round = 1
                     self.apple_width += 2
                 self.num_apples = self.apple_height * self.apple_width
 
@@ -100,6 +104,7 @@ class Game:
                 self.restart()
             rect_width = (self.timer/self.TIMER_MAX)*self.screen.get_width()
             rect = pygame.draw.rect(self.screen, self.rect_color(rect_width), (self.rect_x, self.rect_y, rect_width, self.rect_height))
+            self.screen.blit(self.score_text.render(str(self.point), True, self.score_text_color), (self.score_text_x, self.score_text_y))
             self.timer -= 1
             if self.timer <= 0:
                 self.actual_screen = "loose_screen"

@@ -1,9 +1,11 @@
 import pygame
 from game import Game
 
+pygame.init()
 p = pygame
 p.display.set_caption("Sad-Tap")
 screen = p.display.set_mode((800, 800))
+
 
 clock = pygame.time.Clock()
 FPS = 60
