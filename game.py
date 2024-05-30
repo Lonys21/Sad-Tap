@@ -6,11 +6,25 @@ class Game:
         self.screen = screen
         self.fps = fps
         self.background = 'black'
-        self.actual_screen = 'game'
+        self.actual_screen = 'welcome'
         self.MARGIN_Y = 100
 
+        # menu
+        self.welcome_screen = p.image.load("assets/Welcome_screen.png")
+        self.loose_screen = p.image.load("assets/Loose_screen.png")
+        self.button_x = 296
+        self.button_y = 440
+        self.button_width = 210
+        self.button_height = 170
+        self.button_extension_coef = 1.1
+        self.play_button = Button(self, "Play", self.button_x, self.button_y)
+        self.replay_button = Button(self, "Replay", self.button_x, self.button_y)
+        self.loose_font = p.font.SysFont("Poppins", 65)
+        self.loose_font_y = 230
+        self.loose_font_color = 'orange'
+
         # timer
-        self.TIMER_MAX = 120*self.fps
+        self.TIMER_MAX = 45*self.fps
         self.TIME_PUNITION = 25*self.fps
         self.timer = self.TIMER_MAX
         self.rect_height = 110
@@ -23,12 +37,13 @@ class Game:
         self.ADD_SAD = 3
         self.apple_size = 100
         self.apples = []
-        self.apple_width = 8
-        self.apple_height = 6
+        self.apple_width = 2
+        self.apple_height = 2
         self.num_apples = self.apple_height*self.apple_width
         self.orientations = [0, 90, 180, 270]
         self.number_sad = 1
         self.new_happy = 0
+        self.apple_happy = 0
         self.colors_apples = ["red", "yellow", "orange", "lightgreen", "green"]
         self.start()
 
@@ -38,6 +53,12 @@ class Game:
         self.score_text_color = "white"
         self.score_text_x = 0
         self.score_text_y = 0
+
+    def reset(self):
+        self.point = -1
+        self.number_sad = 1
+        self.apple_happy = 0
+        self.restart()
 
     def set_coos(self, number_width, number_height):
         x = []
@@ -68,6 +89,7 @@ class Game:
     def restart(self):
         self.timer = self.TIMER_MAX
         self.apples = []
+        self.apple_happy += self.new_happy
         self.new_happy = 0
         self.point += 1
         self.coos = []
@@ -99,7 +121,10 @@ class Game:
 
     def update(self):
         self.screen.fill(self.background)
-        if self.actual_screen == 'game':
+        if self.actual_screen == 'welcome':
+            self.screen.blit(self.welcome_screen, (0, 0))
+            self.screen.blit(self.play_button.image, (self.play_button.rect.x, self.play_button.rect.y))
+        elif self.actual_screen == 'game':
             for apple in self.apples:
                 self.screen.blit(apple.img, (apple.rect.x, apple.rect.y))
             if self.new_happy == self.number_sad:
@@ -109,9 +134,22 @@ class Game:
             self.screen.blit(self.score_text.render(str(self.point), True, self.score_text_color), (self.score_text_x, self.score_text_y))
             self.timer -= 1
             if self.timer <= 0:
-                self.actual_screen = "loose_screen"
-        elif self.actual_screen == 'loose_screen':
-            pass
+                self.actual_screen = "loose"
+        elif self.actual_screen == 'loose':
+            self.screen.blit(self.loose_screen, (0, 0))
+            self.screen.blit(self.replay_button.image, (self.replay_button.rect.x, self.replay_button.rect.y))
+            if self.apple_happy > 1:
+                s = "s"
+            else:
+                s = ""
+            text = f"Cool ! You made {self.apple_happy} apple{s} happy"
+            font_x, font_y = self.loose_font.size(text)
+            self.screen.blit(self.loose_font.render(text, True, self.loose_font_color),
+                             (self.screen.get_width()/2 - font_x/2, self.loose_font_y))
+            text2 = f'in only {self.point} round{s}'
+            font_x, y = self.loose_font.size(text2)
+            self.screen.blit(self.loose_font.render(text2, True, self.loose_font_color),
+                             (self.screen.get_width()/2-font_x/2, self.loose_font_y + font_y))
 
     def rect_color(self, width):
         if width > self.screen.get_width()*2/3:
@@ -150,4 +188,30 @@ class Apple(p.sprite.Sprite):
         self.img = self.img_happy
         self.state = "happy"
         self.g.new_happy += 1
+
+class Button:
+
+    def __init__(self, game, name, x, y):
+        self.game = game
+        self.original_image = p.image.load("assets/" + name + "_button.png")
+        self.image = self.original_image
+        self.rect = self.image.get_rect()
+        self.x = x
+        self.y = y
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+    def resize(self, mode):
+        if mode == 'extension':
+            if self.rect.width == self.game.button_width:
+                self.image = p.transform.scale(self.image, (self.rect.width*self.game.button_extension_coef, self.rect.height*self.game.button_extension_coef))
+                self.rect = self.image.get_rect()
+                self.rect.x = self.x-((self.rect.width - self.game.button_width))/2
+                self.rect.y = self.y-((self.rect.height - self.game.button_height))/2
+        else:
+            self.image = self.original_image
+            self.rect = self.image.get_rect()
+            self.rect.x = self.x
+            self.rect.y = self.y
+
 

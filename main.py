@@ -23,11 +23,32 @@ while running:
             running = False
             p.quit()
         elif ev.type == p.MOUSEBUTTONDOWN:
-            for apple in g.apples:
-                if apple.rect.collidepoint(ev.pos):
-                    if apple.state == 'sad':
-                        apple.make_happy()
-                    else:
-                        g.timer -= g.TIME_PUNITION
+            if g.actual_screen == 'welcome':
+                if g.play_button.rect.collidepoint(ev.pos):
+                    g.actual_screen = 'game'
+                    g.play_button.resize("reset")
+            elif g.actual_screen == 'game':
+                for apple in g.apples:
+                    if apple.rect.collidepoint(ev.pos):
+                        if apple.state == 'sad':
+                            apple.make_happy()
+                        else:
+                            g.timer -= g.TIME_PUNITION
+            elif g.actual_screen == 'loose':
+                if g.replay_button.rect.collidepoint(ev.pos):
+                    g.actual_screen = 'game'
+                    g.reset()
+                    g.replay_button.resize("reset")
+        elif ev.type == p.MOUSEMOTION:
+            if g.actual_screen == 'welcome':
+                if g.play_button.rect.collidepoint(ev.pos):
+                    g.play_button.resize("extension")
+                else:
+                    g.play_button.resize("reset")
+            elif g.actual_screen == 'loose':
+                if g.replay_button.rect.collidepoint(ev.pos):
+                    g.replay_button.resize("extension")
+                else:
+                    g.replay_button.resize("reset")
     clock.tick(FPS)
 
