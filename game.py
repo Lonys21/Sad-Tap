@@ -11,7 +11,7 @@ class Game:
 
         # menu
         self.welcome_screen = p.image.load("assets/Welcome_screen.png")
-        self.loose_screen = p.image.load("assets/Loose_screen.png")
+        self.loose_screens = {"sad": p.image.load("assets/Loose_screen_sad.png"), "happy": p.image.load("assets/Loose_screen_happy.png")}
         self.button_x = 296
         self.button_y = 440
         self.button_width = 210
@@ -35,6 +35,9 @@ class Game:
         # apples
         self.MAX_ROUND = 6
         self.ADD_SAD = 3
+        self.BLINK_TIMER_OF = (2, 6)
+        self.BLINK_TIMER_ON = (0.1, 1.2)
+        self.BLINK_START_TIMER = (0, 2.5)
         self.apple_size = 100
         self.apples = []
         self.apple_width = 2
@@ -44,7 +47,8 @@ class Game:
         self.number_sad = 1
         self.new_happy = 0
         self.apple_happy = 0
-        self.colors_apples = ["red", "yellow", "orange", "lightgreen", "green"]
+        self.colors_apples = ["red", "yellow", "orange", "lightgreen", "green", "pink", "purple", "blue"]
+
         self.start()
 
         # score
@@ -107,16 +111,20 @@ class Game:
 
         self.start()
     def start(self):
+        color = ""
+        color_ = ""
         self.coos = self.set_coos(self.apple_width, self.apple_height)
         for coo in self.coos:
-            color = random.choice(self.colors_apples)
+            while color == color_:
+                color = random.choice(self.colors_apples)
+            color_ = color
             self.apples.append(Apple(self, "happy", color, coo[0], coo[1]))
         for n in range(self.number_sad):
             apple = random.choice(self.apples)
             while apple.state == 'sad':
                 apple = random.choice(self.apples)
             apple.state = 'sad'
-            apple.img = apple.img_sad
+            apple.imgs = apple.imgs_sad
 
 
     def update(self):
@@ -126,6 +134,7 @@ class Game:
             self.screen.blit(self.play_button.image, (self.play_button.rect.x, self.play_button.rect.y))
         elif self.actual_screen == 'game':
             for apple in self.apples:
+                apple.blink()
                 self.screen.blit(apple.img, (apple.rect.x, apple.rect.y))
             if self.new_happy == self.number_sad:
                 self.restart()
@@ -136,20 +145,29 @@ class Game:
             if self.timer <= 0:
                 self.actual_screen = "loose"
         elif self.actual_screen == 'loose':
-            self.screen.blit(self.loose_screen, (0, 0))
+            if self.apple_happy == 0:
+                screen = "sad"
+            else:
+                screen = "happy"
+            self.screen.blit(self.loose_screens[screen], (0, 0))
             self.screen.blit(self.replay_button.image, (self.replay_button.rect.x, self.replay_button.rect.y))
             if self.apple_happy > 1:
                 s = "s"
             else:
                 s = ""
-            text = f"Cool ! You made {self.apple_happy} apple{s} happy"
+            if not self.apple_happy == 0:
+                text = f"Cool ! You made {self.apple_happy} apple{s} happy"
+            else:
+                text = "Apples are still sad :("
             font_x, font_y = self.loose_font.size(text)
             self.screen.blit(self.loose_font.render(text, True, self.loose_font_color),
                              (self.screen.get_width()/2 - font_x/2, self.loose_font_y))
-            text2 = f'in only {self.point} round{s}'
-            font_x, y = self.loose_font.size(text2)
-            self.screen.blit(self.loose_font.render(text2, True, self.loose_font_color),
-                             (self.screen.get_width()/2-font_x/2, self.loose_font_y + font_y))
+
+            if not self.apple_happy == 0:
+                text2 = f'in only {self.point} round{s}'
+                font_x, y = self.loose_font.size(text2)
+                self.screen.blit(self.loose_font.render(text2, True, self.loose_font_color),
+                                 (self.screen.get_width()/2-font_x/2, self.loose_font_y + font_y))
 
     def rect_color(self, width):
         if width > self.screen.get_width()*2/3:
@@ -173,21 +191,50 @@ class Apple(p.sprite.Sprite):
         self.orientation = random.choice(self.g.orientations)
         self.img_happy = p.transform.scale(p.image.load("assets/Apple_happy_" + color + ".png"), (self.g.apple_size, self.g.apple_size))
         self.img_happy = p.transform.rotate(self.img_happy, self.orientation)
+        self.img_happy_blink = p.transform.rotate(
+            p.transform.scale(p.image.load("assets/Apple_happy_" + color + "_blink.png"),
+                              (self.g.apple_size, self.g.apple_size)), self.orientation)
         self.img_sad = p.transform.scale(p.image.load("assets/Apple_sad_" + color + ".png"), (self.g.apple_size, self.g.apple_size))
         self.img_sad = p.transform.rotate(self.img_sad, self.orientation)
+        self.img_sad_blink = p.transform.rotate(
+            p.transform.scale(p.image.load("assets/Apple_sad_" + color + "_blink.png"),
+                              (self.g.apple_size, self.g.apple_size)), self.orientation)
+        self.imgs_sad = {"idle": self.img_sad, "blink": self.img_sad_blink}
+        self.imgs_happy = {"idle": self.img_happy, "blink": self.img_happy_blink }
+        self.blink_timer_of_max = random.uniform(*self.g.BLINK_TIMER_OF) * self.g.fps
+        self.blink_timer_of = self.blink_timer_of_max
+        self.blink_timer_on_max = random.uniform(*self.g.BLINK_TIMER_ON) * self.g.fps
+        self.blink_timer_on = self.blink_timer_on_max
+        self.blink_start_timer = random.uniform(*self.g.BLINK_START_TIMER) * self.g.fps
+
         self.state = state
         if state == 'happy':
-            self.img = self.img_happy
+            self.imgs = self.imgs_happy
         else:
-            self.img = self.img_sad
+            self.imgs = self.imgs_sad
+        self.img = self.imgs["idle"]
         self.rect = self.img.get_rect()
         self.rect.x = x
         self.rect.y = y
 
     def make_happy(self):
-        self.img = self.img_happy
+        self.imgs = self.imgs_happy
         self.state = "happy"
         self.g.new_happy += 1
+
+    def blink(self):
+        if self.blink_timer_of <= 0:
+            self.blink_timer_on -= 1
+            self.img = self.imgs["blink"]
+            if self.blink_timer_on <= 0:
+                self.blink_timer_on = self.blink_timer_on_max
+                self.blink_timer_of = self.blink_timer_of_max
+        else:
+            if self.blink_start_timer <= 0:
+                self.blink_timer_of -= 1
+            else:
+                self.blink_start_timer -= 1
+            self.img = self.imgs['idle']
 
 class Button:
 
