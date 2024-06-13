@@ -35,9 +35,9 @@ class Game:
         # apples
         self.MAX_ROUND = 6
         self.ADD_SAD = 3
-        self.BLINK_TIMER_OF = (2, 6)
+        self.BLINK_TIMER_OF = (1.5, 6)
         self.BLINK_TIMER_ON = (0.1, 1.2)
-        self.BLINK_START_TIMER = (0, 2.5)
+        self.BLINK_START_TIMER = (-3, 1)
         self.apple_size = 100
         self.apples = []
         self.apple_width = 2
@@ -171,7 +171,7 @@ class Game:
 
     def rect_color(self, width):
         if width > self.screen.get_width()*2/3:
-            R = self.screen.get_width() -width
+            R = self.screen.get_width() - width
         else:
             R = 255
         G = 255 * (width / self.screen.get_width())
